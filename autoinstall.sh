@@ -195,6 +195,13 @@ pacmanInstall() {
 	if [ $? -ne 0 ]; then printf "${RED}${BOLD}pacman:${RESET}${RED} Failed to install package [$2] '$1'${RESET}\n" | tee -a "$ERRFILE"; fi
 }
 
+# Using pacman, remove package $1 from list $2 which is $3st/nd/rd/th of $4
+pacmanRemove() {
+	printf "${BOLD}pacman:${RESET} [$3/$4] Removing package: [$2] '$1'\n"
+	pacman --noconfirm --needed -Rdd $1 >>/dev/null 2>&1 
+	if [ $? -ne 0 ]; then printf "${RED}${BOLD}pacman:${RESET}${RED} Failed to remove package [$2] '$1'${RESET}\n" | tee -a "$ERRFILE"; fi
+}
+
 # Using aur helper, install package $1 from list $2 which is $3st/nd/rd/th of $4
 aurInstall() {
 	printf "${BOLD}$HELPERCMD:${RESET} [$3/$4] Installing package: [$2] '$1'\n"
@@ -237,18 +244,19 @@ gitMakeInstall() {
 # Install packages from string in format: "xclip bluez ..."
 # $1 is the array, 
 # $2 is the title of the array/description
-# $3 is the way to install [P = pacman, A = AUR, G = git,make]
+# $3 is the way to install [P = pacman, PR = pacman -Rdd, A = AUR, G = git,make]
 installPackageArray() {
 	local total="$(echo $1 | wc -w)"
 	local name="$2"
 
 	declare -A type
 	type[P]="pacmanInstall"
+	type[PR]="pacmanRemove"
 	type[A]="aurInstall"
 	type[G]="gitMakeInstall"
 	
 	if [[ $# -ne 3 || -z "${type[$3]}" ]]; then
-		printf "${BOLD}Error:${RESET} Could not install packages: $1\n"
+		printf "${RED}${BOLD}Error:${RESET}${RED} Could not install/remove packages: $1${RESET}\n"
 		return
 	fi
 
@@ -258,7 +266,6 @@ installPackageArray() {
 		i=$((i + 1))
 	done
 }
-
 
 # Install packages marked as pacman (= not marked) from a file $1
 # Valid package list file format:
@@ -476,24 +483,25 @@ unpackFiles "themes/GTK" "/usr/share/themes"
 unpackFiles "themes/Icons" "/usr/share/icons"
 
 
-# INSTALL LIGHTDM
-printf "\n${BOLD}-- INSTALLING DISPLAY MANAGER --${RESET}\n"
-installPackageArray "lightdm" "lightdm" "P"
-installPackageArray "web-greeter lightdm-theme-neon-git" "lightdm" "A"
-copyDirContent "lightdm" "/etc/lightdm/"
-systemctl enable lightdm >>/dev/null 2>&1
-
-
 # INSTALL PIPEWIRE
 printf "\n${BOLD}-- INSTALLING PIPEWIRE --${RESET}\n"
 printf "Removing potential conflicts (pulseaudio).\n"
-pacman -Rdd --noconfirm pulseaudio-alsa pulseaudio-bluetooth pulseaudio jack2 >>/dev/null 2>&1
+# PR = pacman remove
+installPackageArray "pulseaudio-alsa pulseaudio-bluetooth pulseaudio jack2" "audio" "PR"
 installPackageArray "pipewire wireplumber pipewire-alsa pipewire-pulse pipewire-jack" "audio" "P"
 
 printf "Enabling pipewire services.\n"
 sudo -u $user systemctl --global enable pipewire.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire${RESET}\n" | tee -a "$ERRFILE"
 sudo -u $user systemctl --global enable pipewire-pulse.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire-pulse${RESET}\n" | tee -a "$ERRFILE"
 sudo -u $user systemctl --global enable wireplumber.service >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable wireplumber${RESET}\n" | tee -a "$ERRFILE"
+
+
+# INSTALL LIGHTDM
+printf "\n${BOLD}-- INSTALLING DISPLAY MANAGER --${RESET}\n"
+installPackageArray "lightdm" "lightdm" "P"
+installPackageArray "web-greeter lightdm-theme-neon-git" "lightdm" "A"
+copyDirContent "lightdm" "/etc/lightdm/"
+systemctl enable lightdm >>/dev/null 2>&1
 
 
 # Install packages from $PKGS
