@@ -441,6 +441,8 @@ sed -Ei "s/^#(ParallelDownloads).*/\1 = 5/#//" /etc/pacman.conf
 
 # Enable multilib repository
 sed -Ei "/\[multilib\]/,/Include/"'s/^#//' /etc/pacman.conf
+# Update database
+pacman --noconfirm --needed -Sy >>/dev/null 2>&1
 
 # Use all cores for compilation.
 sed -i "s/-j2/-j$(nproc)/;/^#MAKEFLAGS/s/^#//" /etc/makepkg.conf
