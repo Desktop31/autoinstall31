@@ -487,7 +487,7 @@ systemctl enable lightdm >>/dev/null 2>&1
 # INSTALL PIPEWIRE
 printf "\n${BOLD}-- INSTALLING PIPEWIRE --${RESET}\n"
 printf "Removing potential conflicts (pulseaudio).\n"
-pacman -R --noconfirm pulseaudio-alsa pulseaudio-bluetooth pulseaudio jack2 >>/dev/null 2>&1
+pacman -Rdd --noconfirm pulseaudio-alsa pulseaudio-bluetooth pulseaudio jack2 >>/dev/null 2>&1
 installPackageArray "pipewire wireplumber pipewire-alsa pipewire-pulse pipewire-jack" "audio" "P"
 
 printf "Enabling pipewire services.\n"
