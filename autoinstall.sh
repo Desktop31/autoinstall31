@@ -401,7 +401,7 @@ SOURCEDIR="/home/$user/.local/src"
 SCRIPTDIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Package list directory
-PKGDIR="$SCRIPTDIR/dotfiles/pkgs" 
+PKGDIR="$SCRIPTDIR/pkgs" 
 
 # Stuff that went bad goes here
 ERRFILE="$SCRIPTDIR/err.txt"
@@ -438,6 +438,9 @@ echo "%wheel ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/autoinstall-temp
 
 # Allow concurrent downloads
 sed -Ei "s/^#(ParallelDownloads).*/\1 = 5/#//" /etc/pacman.conf
+
+# Enable multilib repository
+sed -Ei "/\[multilib\]/,/Include/"'s/^#//' /etc/pacman.conf
 
 # Use all cores for compilation.
 sed -i "s/-j2/-j$(nproc)/;/^#MAKEFLAGS/s/^#//" /etc/makepkg.conf
@@ -479,6 +482,11 @@ copyDirContent "lightdm" "/etc/lightdm/"
 systemctl enable lightdm >>/dev/null 2>&1
 
 
+# Install packages from $PKGS
+printf "\n${BOLD}-- INSTALLING PACKAGES --${RESET}\n"
+installPackages
+
+
 # INSTALL PIPEWIRE
 printf "\n${BOLD}-- INSTALLING PIPEWIRE --${RESET}\n"
 printf "Removing potential conflicts (pulseaudio).\n"
@@ -490,10 +498,6 @@ sudo -u $user systemctl --user enable pipewire.socket >>/dev/null 2>&1 || printf
 sudo -u $user systemctl --user enable pipewire-pulse.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire-pulse${RESET}\n" | tee -a "$ERRFILE"
 sudo -u $user systemctl --user enable wireplumber.service >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable wireplumber${RESET}\n" | tee -a "$ERRFILE"
 
-
-# Install packages from $PKGS
-printf "\n${BOLD}-- INSTALLING PACKAGES --${RESET}\n"
-installPackages
 
 printf "\n${BOLD}-- FINISHING --${RESET}\n"
 # Allow users to sudo with password and run some commands without password
