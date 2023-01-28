@@ -197,6 +197,9 @@ pacmanInstall() {
 
 # Using pacman, remove package $1 from list $2 which is $3st/nd/rd/th of $4
 pacmanRemove() {
+	local check="$(pacman -Qq | grep $1)"
+	if [ -z $check ]; then return 0; fi
+	
 	printf "${BOLD}pacman:${RESET} [$3/$4] Removing package: [$2] '$1'\n"
 	pacman --noconfirm --needed -Rdd $1 >>/dev/null 2>&1 
 	if [ $? -ne 0 ]; then printf "${RED}${BOLD}pacman:${RESET}${RED} Failed to remove package [$2] '$1'${RESET}\n" | tee -a "$ERRFILE"; fi
