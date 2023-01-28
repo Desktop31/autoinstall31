@@ -484,11 +484,6 @@ copyDirContent "lightdm" "/etc/lightdm/"
 systemctl enable lightdm >>/dev/null 2>&1
 
 
-# Install packages from $PKGS
-printf "\n${BOLD}-- INSTALLING PACKAGES --${RESET}\n"
-installPackages
-
-
 # INSTALL PIPEWIRE
 printf "\n${BOLD}-- INSTALLING PIPEWIRE --${RESET}\n"
 printf "Removing potential conflicts (pulseaudio).\n"
@@ -496,9 +491,14 @@ pacman -R --noconfirm pulseaudio-alsa pulseaudio-bluetooth pulseaudio jack2 >>/d
 installPackageArray "pipewire wireplumber pipewire-alsa pipewire-pulse pipewire-jack" "audio" "P"
 
 printf "Enabling pipewire services.\n"
-sudo -u $user systemctl --user enable pipewire.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire${RESET}\n" | tee -a "$ERRFILE"
-sudo -u $user systemctl --user enable pipewire-pulse.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire-pulse${RESET}\n" | tee -a "$ERRFILE"
-sudo -u $user systemctl --user enable wireplumber.service >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable wireplumber${RESET}\n" | tee -a "$ERRFILE"
+sudo -u $user systemctl --global enable pipewire.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire${RESET}\n" | tee -a "$ERRFILE"
+sudo -u $user systemctl --global enable pipewire-pulse.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire-pulse${RESET}\n" | tee -a "$ERRFILE"
+sudo -u $user systemctl --global enable wireplumber.service >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable wireplumber${RESET}\n" | tee -a "$ERRFILE"
+
+
+# Install packages from $PKGS
+printf "\n${BOLD}-- INSTALLING PACKAGES --${RESET}\n"
+installPackages
 
 
 printf "\n${BOLD}-- FINISHING --${RESET}\n"
