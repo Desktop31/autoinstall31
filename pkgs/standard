@@ -15,7 +15,10 @@ eog
 atool
 mdcat
 ffmpegthumbnailer
+trash-cli
+imagemagick
 yt-dlp
+noise-suppression-for-voice
 cava						A
 rofi-lbonn-wayland-git		A
 smile						A

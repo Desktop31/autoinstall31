@@ -136,10 +136,8 @@ createUser() {
 	done
 
 	echo "Creating user '$1'..."
-	useradd -m -g wheel -s /bin/zsh "$1" >/dev/null 2>&1 
-	if [[ $? -ne 0 ]]; then
-		return 1
-	fi
+	useradd -m -g wheel -s /bin/zsh "$1" >/dev/null 2>&1 || return 1
+	usermod -a -G audio,video,storage,optical "$user" || return 1
 	
 	echo "$1:$passw1" | chpasswd 
 	unset passw1 passw2
@@ -162,6 +160,7 @@ cloneRepo() {
 	
 	mkdir -p "$SOURCEDIR"
 	chown -R "$user":wheel "$SOURCEDIR"
+	chown -R "$user":wheel "/home/$user"
 
 	# Clone dotfiles
 	sudo -u "$user" git -C "$SOURCEDIR" clone --depth 1 \
