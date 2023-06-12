@@ -5,6 +5,7 @@ firefox
 lf
 thunar
 tumbler
+mediainfo
 mediainfo-gui
 ark
 gucharmap
@@ -22,4 +23,6 @@ noise-suppression-for-voice
 cava						A
 rofi-lbonn-wayland-git		A
 smile						A
+vimv-git                    A
 https://github.com/NikitaIvanovV/ctpv.git		G
+https://github.com/mwh/dragon.git               G
