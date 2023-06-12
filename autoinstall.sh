@@ -54,8 +54,9 @@ parseArgs() {
 				# convert to lowercase and assign to variable
 				user=$(echo "$2" | tr '[:upper:]' '[:lower:]')
 
-				local check=$(echo "$user" | grep "^[a-z_][a-z0-9_-]*$")
-				if [[ $check != $user ]]; then
+                local check
+				check=$(echo "$user" | grep "^[a-z_][a-z0-9_-]*$")
+				if [[ "$check" != "$user" ]]; then
 					error "Invalid username format."
 				fi
 				# move to the next argument 
@@ -98,8 +99,9 @@ parseArgs() {
 # Check if user with name $1 already exists
 # If user exists, return 1, else 0
 checkUser() {
-	local userID="$(id -u $1 2>>/dev/null)"
-	if [[ $userID -ne 0 ]]; then
+    local userID
+	userID="$(id -u "$1" 2>>/dev/null)"
+	if [[ "$userID" -ne 0 ]]; then
 		return 1
 	else
 		return 0
@@ -108,11 +110,11 @@ checkUser() {
 
 # Ask for password and create user with name $1
 createUser() {
-	if [[ -z $1 ]]; then
+	if [[ -z "$1" ]]; then
 		error "Aborting - no username entered."
 	fi
 
-	checkUser $1
+	checkUser "$1"
 
 	if [[ $? == 1 ]]; then
 		whiptail --title "WARNING" --yes-button "CONTINUE" \
@@ -127,10 +129,12 @@ createUser() {
 		fi
 	fi
 
-	local passw1=$(whiptail --nocancel --passwordbox "Enter a password for user '$1':" 10 70 3>&1 1>&2 2>&3 3>&1)
-	local passw2=$(whiptail --nocancel --passwordbox "Retype password:" 10 70 3>&1 1>&2 2>&3 3>&1)
+    local passw1
+    local passw2
+	passw1=$(whiptail --nocancel --passwordbox "Enter a password for user '$1':" 10 70 3>&1 1>&2 2>&3 3>&1)
+	passw2=$(whiptail --nocancel --passwordbox "Retype password:" 10 70 3>&1 1>&2 2>&3 3>&1)
 
-	while [[ $passw1 != $passw2 ]]; do
+	while [[ "$passw1" != "$passw2" ]]; do
 		passw1=$(whiptail --nocancel --passwordbox "Passwords do not match.\n\nEnter a password for user '$1':" 10 70 3>&1 1>&2 2>&3 3>&1)
 		passw2=$(whiptail --nocancel --passwordbox "Retype password:" 10 70 3>&1 1>&2 2>&3 3>&1)
 	done
@@ -182,9 +186,9 @@ installAURHelper() {
 	sudo -u "$user" git -C "$SOURCEDIR" clone --depth 1 \
 				--single-branch --no-tags -q "$HELPERREPO" "$SOURCEDIR/$HELPERCMD"
 				
-	cd "$SOURCEDIR/$HELPERCMD" 
+	cd "$SOURCEDIR/$HELPERCMD" || return 1
 	sudo -u "$user" -D "$SOURCEDIR/$HELPERCMD" makepkg --noconfirm -si >>/dev/null 2>&1 || return 1
-	cd "$SCRIPTDIR"
+	cd "$SCRIPTDIR" || return 1
 }
 
 # Using pacman, install package $1 from list $2 which is $3st/nd/rd/th of $4
@@ -196,8 +200,9 @@ pacmanInstall() {
 
 # Using pacman, remove package $1 from list $2 which is $3st/nd/rd/th of $4
 pacmanRemove() {
-	local check="$(pacman -Qq | grep $1)"
-	if [ -z $check ]; then return 0; fi
+    local check
+	check="$(pacman -Qq | grep "$1")"
+	if [ -z "$check" ]; then return 0; fi
 	
 	printf "${BOLD}pacman:${RESET} [$3/$4] Removing package: [$2] '$1'\n"
 	pacman --noconfirm --needed -Rdd $1 >>/dev/null 2>&1 
@@ -213,8 +218,9 @@ aurInstall() {
 
 # Pulls git repository $1 and compiles it using make 
 gitMakeInstall() {
-	local name="$(basename $1)"
-	name="${name%.git}"
+    local name
+	name="$(basename "$1")" # get basename from url
+	name="${name%.git}"     # strip .git
 
 	printf "${BOLD}git:${RESET} [$3/$4] Pulling repository: [$2] '$1'\n"
 	sudo -u "$user" git -C "$SOURCEDIR" clone --depth 1 --single-branch --recursive --no-tags -q "$1" "$SOURCEDIR/$name" || 
@@ -248,8 +254,10 @@ gitMakeInstall() {
 # $2 is the title of the array/description
 # $3 is the way to install [P = pacman, PR = pacman -Rdd, A = AUR, G = git,make]
 installPackageArray() {
-	local total="$(echo $1 | wc -w)"
-	local name="$2"
+    local total
+    local name
+	total="$(echo "$1" | wc -w)"
+	name="$2"
 
 	declare -A type
 	type[P]="pacmanInstall"
@@ -274,8 +282,9 @@ installPackageArray() {
 # pkg-name
 # pkg-name 
 pacmanInstallFile() {
-	local list="$(cat $1 | awk '!/^.*[AG]$/{print $1}')"
-	installPackageArray "$list" "$(basename $1)" "P"
+    local list
+	list="$(awk '!/^.*[AG]$/{print $1}' < "$1")"
+	installPackageArray "$list" "$(basename "$1")" "P"
 }
 
 # Install packages marked as aur (= "A" at the end) from a file $1
@@ -283,8 +292,9 @@ pacmanInstallFile() {
 # pkg-name	A
 # pkg-name	A
 aurInstallFile() {
-	local list="$(cat $1 | awk '/^.*A$/{print $1}')"
-	installPackageArray "$list" "$(basename $1)" "A"
+    local list
+	list="$(awk '/^.*A$/{print $1}' < "$1")"
+	installPackageArray "$list" "$(basename "$1")" "A"
 }
 
 # Install packages marked as git (= "G" at the end) from a file $1
@@ -292,8 +302,9 @@ aurInstallFile() {
 # pkg-name	G
 # pkg-name	G
 gitInstallFile() {
-	local list="$(cat $1 | awk '/^.*G$/{print $1}')"
-	installPackageArray "$list" "$(basename $1)" "G"
+    local list
+	list="$(awk '/^.*G$/{print $1}' < "$1")"
+	installPackageArray "$list" "$(basename "$1")" "G"
 }
 
 
@@ -318,12 +329,13 @@ copyDirContent() {
 	local dirPath="$SOURCEDIR/dotfiles/$1"
 	
 	if [[ ! -d $2 ]]; then
-		mkdir -p $2 
+		mkdir -p "$2"
 	fi
 
 	cp -rT "$dirPath" "$2" 
 
-	local isUserDir="$(echo "$2" | grep "/home/$user/")"
+    local isUserDir
+	isUserDir="$(echo "$2" | grep "/home/$user/")"
 	if [[ -n $isUserDir ]]; then
 		chown -R "$user":"$user" "$2"
 	fi
@@ -332,7 +344,7 @@ copyDirContent() {
 # Copy file $1 from dotfiles to home directory
 copyHome() {
 	echo "Copying file '$1' to '/home/$user/'"
-	sudo -u $user cp "$SOURCEDIR/dotfiles/$1" "/home/$user/$1" 
+	sudo -u "$user" cp "$SOURCEDIR/dotfiles/$1" "/home/$user/$1" 
 }
 
 # Unpack compressed files from directory $1 in dotfiles to $2
@@ -341,13 +353,13 @@ unpackFiles() {
 	local dirPath="$SOURCEDIR/dotfiles/$1"
 
 	local files=()
-	IFS=" " read -r -a files <<< "$(ls -1 $dirPath | grep ".*\.tar.*" | tr '\n' ' ')"
+	IFS=" " read -r -a files <<< "$(ls -1 "$dirPath" | grep ".*\.tar.*" | tr '\n' ' ')"
 
 	if [[ "${#files[@]}" -ne 0 && ! -d $2 ]]; then
-		mkdir -p $2
+		mkdir -p "$2"
 	fi
 
-	for file in "$files"; do
+	for file in "${files[@]}"; do
 		case "$file" in
 			*.tar.gz | *.tgz )
 				tar -xzf "$dirPath/$file" -C "$2" >>/dev/null 2>&1
@@ -377,7 +389,7 @@ unpackFiles() {
 # Define and get valid user arguments
 SHORT=u:,w,x,p:,h
 LONG=user:,wayland,xorg,packages:,help
-OPTS=$(getopt --alternative --name $0 --options $SHORT --longoptions $LONG -- "$@") 
+OPTS=$(getopt --alternative --name "$0" --options $SHORT --longoptions $LONG -- "$@") 
 
 # Check if getopt was successful
 if [[ $? -ne 0 ]]; then
@@ -461,7 +473,7 @@ rmmod pcspkr
 echo "blacklist pcspkr" >/etc/modprobe.d/nobeep.conf
 
 # Install AUR helper defined in $HELPERREPO and $HELPERCMD
-installAURHelper
+installAURHelper || error "Failed to install AUR helper"
 
 
 # Create user directories and copy content from dotfiles
