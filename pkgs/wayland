@@ -1,6 +1,8 @@
 gdb
 ninja
 gcc
+cmake
+meson
 libxcb
 xcb-proto
 xcb-util
@@ -18,6 +20,11 @@ seatd
 libxkbcommon
 xcb-util-wm
 xorg-xwayland
+libinput
+libliftoff
+libdisplay-info
+cpio
+xcb-errors
 wl-clipboard
 qt5-wayland
 qt6-wayland
