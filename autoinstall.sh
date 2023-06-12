@@ -233,11 +233,13 @@ gitMakeInstall() {
 	cd "$SOURCEDIR/$name" ||  return 1
 	printf "${BOLD}git:${RESET} [%s/%s] Repository downloaded successfully, running ${BOLD}'make'${RESET}...\n" "$3" "$4"
 	
-	make >>/dev/null 2>&1 
-	if [[ $? -ne 0 ]]; then
-		printf "${RED}${BOLD}git:${RESET}${RED} Failed to make [%s] '%s'${RESET}\n" "$2" "$name" | tee -a "$ERRFILE"
-		return 1
-	fi
+    if [[ "$name" != "Hyprland" ]]; then
+        make >>/dev/null 2>&1 
+        if [[ $? -ne 0 ]]; then
+            printf "${RED}${BOLD}git:${RESET}${RED} Failed to make [%s] '%s'${RESET}\n" "$2" "$name" | tee -a "$ERRFILE"
+            return 1
+        fi
+    fi
 	make install >>/dev/null 2>&1 
 	if [[ $? -ne 0 ]]; then
 		printf "${RED}${BOLD}git:${RESET}${RED} Failed to make install [%s] '%s'${RESET}\n" "$2" "$name" | tee -a "$ERRFILE"
