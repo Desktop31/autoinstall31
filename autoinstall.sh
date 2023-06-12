@@ -455,7 +455,7 @@ cloneRepo || error "Error cloning repository."
 
 
 # Allow user to run sudo without password (required for AUR installations)
-printf "\n%s-- PREPARING FOR INSTALLATION --%s\n" "$BOLD" "$RESET"
+printf "\n${BOLD}-- PREPARING FOR INSTALLATION --${RESET}\n"
 trap 'rm -f /etc/sudoers.d/autoinstall-temp' HUP INT QUIT TERM PWR EXIT
 echo "%wheel ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/autoinstall-temp
 
@@ -479,7 +479,7 @@ installAURHelper || error "Failed to install AUR helper"
 
 
 # Create user directories and copy content from dotfiles
-printf "\n%s-- COPYING CONFIGURATION FILES --%s\n" "$BOLD" "$RESET"
+printf "\n${BOLD}-- COPYING CONFIGURATION FILES --${RESET}\n"
 
 installPackageArray "xdg-user-dirs" "configs" "P"
 xdg-user-dirs-update >>/dev/null 2>&1
@@ -500,7 +500,7 @@ unpackFiles "themes/Icons" "/usr/share/icons"
 
 
 # INSTALL PIPEWIRE
-printf "\n%s-- INSTALLING PIPEWIRE --%s\n" "$BOLD" "$RESET"
+printf "\n${BOLD}-- INSTALLING PIPEWIRE --${RESET}\n"
 printf "Removing potential conflicts (pulseaudio).\n"
 # PR = pacman remove
 installPackageArray "pulseaudio-alsa pulseaudio-bluetooth pulseaudio jack2" "audio" "PR"
@@ -513,7 +513,7 @@ sudo -u "$user" systemctl --global enable wireplumber.service >>/dev/null 2>&1 |
 
 
 # INSTALL LIGHTDM
-printf "\n%s-- INSTALLING DISPLAY MANAGER --%s\n" "$BOLD" "$RESET"
+printf "\n${BOLD}-- INSTALLING DISPLAY MANAGER --${RESET}\n"
 installPackageArray "lightdm" "lightdm" "P"
 installPackageArray "web-greeter lightdm-theme-neon-git" "lightdm" "A"
 copyDirContent "lightdm" "/etc/lightdm/"
@@ -521,11 +521,11 @@ systemctl enable lightdm >>/dev/null 2>&1
 
 
 # Install packages from $PKGS
-printf "\n%s-- INSTALLING PACKAGES --%s\n" "$BOLD" "$RESET"
+printf "\n${BOLD}-- INSTALLING PACKAGES --${RESET}\n"
 installPackages
 
 
-printf "\n%s-- FINISHING --%s\n" "$BOLD" "$RESET"
+printf "\n${BOLD}-- FINISHING --${RESET}\n"
 # Allow users to sudo with password and run some commands without password
 
 echo "%wheel ALL=(ALL:ALL) ALL" >/etc/sudoers.d/00-wheel-can-sudo
@@ -533,7 +533,7 @@ echo "%wheel ALL=(ALL:ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot,/usr/bin/
 
 
 printf "\n"
-printf "%s===========================%s\n" "$BOLD" "$RESET"
-printf "%s== INSTALLATION FINISHED ==%s\n" "$BOLD" "$RESET"
-printf "%s==     PLEASE REBOOT     ==%s\n" "$BOLD" "$RESET"
-printf "%s===========================%s\n" "$BOLD" "$RESET"
+printf "${BOLD}===========================${RESET}\n"
+printf "${BOLD}== INSTALLATION FINISHED ==${RESET}\n"
+printf "${BOLD}==     PLEASE REBOOT     ==${RESET}\n"
+printf "${BOLD}===========================${RESET}\n"
