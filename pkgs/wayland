@@ -24,7 +24,7 @@ libinput
 libliftoff
 libdisplay-info
 cpio
-xcb-errors
+xcb-util-errors
 wl-clipboard
 qt5-wayland
 qt6-wayland
