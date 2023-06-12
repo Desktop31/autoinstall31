@@ -193,9 +193,9 @@ installAURHelper() {
 
 # Using pacman, install package $1 from list $2 which is $3st/nd/rd/th of $4
 pacmanInstall() {
-	printf "${BOLD}pacman:${RESET} [$3/$4] Installing package: [$2] '$1'\n"
-	pacman --noconfirm --needed -S $1 >>/dev/null 2>&1 
-	if [ $? -ne 0 ]; then printf "${RED}${BOLD}pacman:${RESET}${RED} Failed to install package [$2] '$1'${RESET}\n" | tee -a "$ERRFILE"; fi
+	printf "%spacman:%s [%s/%s] Installing package: [%s] '%s'\n" "$BOLD" "$RESET" "$3" "$4" "$2" "$1"
+	pacman --noconfirm --needed -S "$1" >>/dev/null 2>&1 
+	if [ $? -ne 0 ]; then printf "%s%spacman:%s%s Failed to install package [%s] '%s'%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$2" "$1" "$RESET" | tee -a "$ERRFILE"; fi
 }
 
 # Using pacman, remove package $1 from list $2 which is $3st/nd/rd/th of $4
@@ -204,16 +204,16 @@ pacmanRemove() {
 	check="$(pacman -Qq | grep "$1")"
 	if [ -z "$check" ]; then return 0; fi
 	
-	printf "${BOLD}pacman:${RESET} [$3/$4] Removing package: [$2] '$1'\n"
-	pacman --noconfirm --needed -Rdd $1 >>/dev/null 2>&1 
-	if [ $? -ne 0 ]; then printf "${RED}${BOLD}pacman:${RESET}${RED} Failed to remove package [$2] '$1'${RESET}\n" | tee -a "$ERRFILE"; fi
+	printf "%spacman:%s [%s/%s] Removing package: [%s] '%s'\n" "$BOLD" "$RESET" "$3" "$4" "$2" "$1"
+	pacman --noconfirm --needed -Rdd "$1" >>/dev/null 2>&1 
+	if [ $? -ne 0 ]; then printf "%s%spacman:%s%s Failed to remove package [%s] '%s'%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$2" "$1" "$RESET" | tee -a "$ERRFILE"; fi
 }
 
 # Using aur helper, install package $1 from list $2 which is $3st/nd/rd/th of $4
 aurInstall() {
-	printf "${BOLD}$HELPERCMD:${RESET} [$3/$4] Installing package: [$2] '$1'\n"
-	sudo -u "$user" $HELPERCMD --noconfirm --needed -S $1 >>/dev/null 2>&1 
-	if [ $? -ne 0 ]; then printf "${RED}${BOLD}$HELPERCMD:${RESET}${RED} Failed to install package [$2] '$1'${RESET}\n" | tee -a "$ERRFILE"; fi
+	printf "%s%s:%s [%s/%s] Installing package: [%s] '%s'\n" "$BOLD" "$HELPERCMD" "$RESET" "$3" "$4" "$2" "$1"
+	sudo -u "$user" $HELPERCMD --noconfirm --needed -S "$1" >>/dev/null 2>&1 
+	if [ $? -ne 0 ]; then printf "%s%s%s:%s%s Failed to install package [%s] '%s'%s\n" "$RED" "$BOLD" "$HELPERCMD" "$RESET" "$RED" "$2" "$1" "$RESET" | tee -a "$ERRFILE"; fi
 }
 
 # Pulls git repository $1 and compiles it using make 
@@ -222,30 +222,30 @@ gitMakeInstall() {
 	name="$(basename "$1")" # get basename from url
 	name="${name%.git}"     # strip .git
 
-	printf "${BOLD}git:${RESET} [$3/$4] Pulling repository: [$2] '$1'\n"
+	printf "%sgit:%s [%s/%s] Pulling repository: [%s] '%s'\n" "$BOLD" "$RESET" "$3" "$4" "$2" "$1"
 	sudo -u "$user" git -C "$SOURCEDIR" clone --depth 1 --single-branch --recursive --no-tags -q "$1" "$SOURCEDIR/$name" || 
 		{
 			cd "$SOURCEDIR/$name" || return 1
-			printf "${BOLD}git:${RESET} [$3/$4] Directory already exists, attempting to update...\n"
+			printf "%sgit:%s [%s/%s] Directory already exists, attempting to update...\n" "$BOLD" "$RESET" "$3" "$4"
 			sudo -u "$user" git pull 
 		}
 	
 	cd "$SOURCEDIR/$name" ||  return 1
-	printf "${BOLD}git:${RESET} [$3/$4] Repository downloaded successfully, running ${BOLD}'make'${RESET}...\n"
+	printf "%sgit:%s [%s/%s] Repository downloaded successfully, running %s'make'%s...\n" "$BOLD" "$RESET" "$3" "$4" "$BOLD" "$RESET"
 	
 	make >>/dev/null 2>&1 
 	if [[ $? -ne 0 ]]; then
-		printf "${RED}${BOLD}git:${RESET}${RED} Failed to make [$2] '$name'${RESET}\n" | tee -a "$ERRFILE"
+		printf "%s%sgit:%s%s Failed to make [%s] '%s'%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$2" "$name" "$RESET" | tee -a "$ERRFILE"
 		return 1
 	fi
 	make install >>/dev/null 2>&1 
 	if [[ $? -ne 0 ]]; then
-		printf "${RED}${BOLD}git:${RESET}${RED} Failed to make install [$2] '$name'${RESET}\n" | tee -a "$ERRFILE"
+		printf "%s%sgit:%s%s Failed to make install [%s] '%s'%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$2" "$name" "$RESET" | tee -a "$ERRFILE"
 		return 1
 	fi
 
-	printf "${BOLD}git:${RESET} [$3/$4] Successfully installed '$name'.\n"
-	cd "$SCRIPTDIR"
+	printf "%sgit:%s [%s/%s] Successfully installed '%s'.\n" "$BOLD" "$RESET" "$3" "$4" "$name"
+	cd "$SCRIPTDIR" || return 1
 }
 
 
@@ -266,7 +266,7 @@ installPackageArray() {
 	type[G]="gitMakeInstall"
 	
 	if [[ $# -ne 3 || -z "${type[$3]}" ]]; then
-		printf "${RED}${BOLD}Error:${RESET}${RED} Could not install/remove packages: $1${RESET}\n"
+		printf "%s%sError:%s%s Could not install/remove packages: %s%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$1" "$RESET"
 		return
 	fi
 
@@ -453,7 +453,7 @@ cloneRepo || error "Error cloning repository."
 
 
 # Allow user to run sudo without password (required for AUR installations)
-printf "\n${BOLD}-- PREPARING FOR INSTALLATION --${RESET}\n"
+printf "\n%s-- PREPARING FOR INSTALLATION --%s\n" "$BOLD" "$RESET"
 trap 'rm -f /etc/sudoers.d/autoinstall-temp' HUP INT QUIT TERM PWR EXIT
 echo "%wheel ALL=(ALL) NOPASSWD: ALL" >/etc/sudoers.d/autoinstall-temp
 
@@ -477,7 +477,7 @@ installAURHelper || error "Failed to install AUR helper"
 
 
 # Create user directories and copy content from dotfiles
-printf "\n${BOLD}-- COPYING CONFIGURATION FILES --${RESET}\n"
+printf "\n%s-- COPYING CONFIGURATION FILES --%s\n" "$BOLD" "$RESET"
 
 installPackageArray "xdg-user-dirs" "configs" "P"
 xdg-user-dirs-update >>/dev/null 2>&1
@@ -498,20 +498,20 @@ unpackFiles "themes/Icons" "/usr/share/icons"
 
 
 # INSTALL PIPEWIRE
-printf "\n${BOLD}-- INSTALLING PIPEWIRE --${RESET}\n"
+printf "\n%s-- INSTALLING PIPEWIRE --%s\n" "$BOLD" "$RESET"
 printf "Removing potential conflicts (pulseaudio).\n"
 # PR = pacman remove
 installPackageArray "pulseaudio-alsa pulseaudio-bluetooth pulseaudio jack2" "audio" "PR"
 installPackageArray "pipewire wireplumber pipewire-alsa pipewire-pulse pipewire-jack" "audio" "P"
 
 printf "Enabling pipewire services.\n"
-sudo -u $user systemctl --global enable pipewire.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire${RESET}\n" | tee -a "$ERRFILE"
-sudo -u $user systemctl --global enable pipewire-pulse.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire-pulse${RESET}\n" | tee -a "$ERRFILE"
-sudo -u $user systemctl --global enable wireplumber.service >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable wireplumber${RESET}\n" | tee -a "$ERRFILE"
+sudo -u "$user" systemctl --global enable pipewire.socket >>/dev/null 2>&1 || printf "%s%saudio:%s%s Failed to enable pipewire%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$RESET" | tee -a "$ERRFILE"
+sudo -u "$user" systemctl --global enable pipewire-pulse.socket >>/dev/null 2>&1 || printf "%s%saudio:%s%s Failed to enable pipewire-pulse%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$RESET" | tee -a "$ERRFILE"
+sudo -u "$user" systemctl --global enable wireplumber.service >>/dev/null 2>&1 || printf "%s%saudio:%s%s Failed to enable wireplumber%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$RESET" | tee -a "$ERRFILE"
 
 
 # INSTALL LIGHTDM
-printf "\n${BOLD}-- INSTALLING DISPLAY MANAGER --${RESET}\n"
+printf "\n%s-- INSTALLING DISPLAY MANAGER --%s\n" "$BOLD" "$RESET"
 installPackageArray "lightdm" "lightdm" "P"
 installPackageArray "web-greeter lightdm-theme-neon-git" "lightdm" "A"
 copyDirContent "lightdm" "/etc/lightdm/"
@@ -519,11 +519,11 @@ systemctl enable lightdm >>/dev/null 2>&1
 
 
 # Install packages from $PKGS
-printf "\n${BOLD}-- INSTALLING PACKAGES --${RESET}\n"
+printf "\n%s-- INSTALLING PACKAGES --%s\n" "$BOLD" "$RESET"
 installPackages
 
 
-printf "\n${BOLD}-- FINISHING --${RESET}\n"
+printf "\n%s-- FINISHING --%s\n" "$BOLD" "$RESET"
 # Allow users to sudo with password and run some commands without password
 
 echo "%wheel ALL=(ALL:ALL) ALL" >/etc/sudoers.d/00-wheel-can-sudo
@@ -531,7 +531,7 @@ echo "%wheel ALL=(ALL:ALL) NOPASSWD: /usr/bin/shutdown,/usr/bin/reboot,/usr/bin/
 
 
 printf "\n"
-printf "${BOLD}===========================${RESET}\n"
-printf "${BOLD}== INSTALLATION FINISHED ==${RESET}\n"
-printf "${BOLD}==     PLEASE REBOOT     ==${RESET}\n"
-printf "${BOLD}===========================${RESET}\n"
+printf "%s===========================%s\n" "$BOLD" "$RESET"
+printf "%s== INSTALLATION FINISHED ==%s\n" "$BOLD" "$RESET"
+printf "%s==     PLEASE REBOOT     ==%s\n" "$BOLD" "$RESET"
+printf "%s===========================%s\n" "$BOLD" "$RESET"
