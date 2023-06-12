@@ -11,7 +11,6 @@ gtk2
 yajl
 jsoncpp
 libinput
-gparted
 gst-plugin-pipewire
 pavucontrol
 samba
