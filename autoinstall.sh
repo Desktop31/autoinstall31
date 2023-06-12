@@ -193,9 +193,9 @@ installAURHelper() {
 
 # Using pacman, install package $1 from list $2 which is $3st/nd/rd/th of $4
 pacmanInstall() {
-	printf "%spacman:%s [%s/%s] Installing package: [%s] '%s'\n" "$BOLD" "$RESET" "$3" "$4" "$2" "$1"
+	printf "${BOLD}pacman:${RESET} [%s/%s] Installing package: [%s] '%s'\n" "$3" "$4" "$2" "$1"
 	pacman --noconfirm --needed -S "$1" >>/dev/null 2>&1 
-	if [ $? -ne 0 ]; then printf "%s%spacman:%s%s Failed to install package [%s] '%s'%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$2" "$1" "$RESET" | tee -a "$ERRFILE"; fi
+	if [ $? -ne 0 ]; then printf "${RED}${BOLD}pacman:${RESET}${RED} Failed to install package [%s] '%s'${RESET}\n" "$2" "$1" | tee -a "$ERRFILE"; fi
 }
 
 # Using pacman, remove package $1 from list $2 which is $3st/nd/rd/th of $4
@@ -204,16 +204,16 @@ pacmanRemove() {
 	check="$(pacman -Qq | grep "$1")"
 	if [ -z "$check" ]; then return 0; fi
 	
-	printf "%spacman:%s [%s/%s] Removing package: [%s] '%s'\n" "$BOLD" "$RESET" "$3" "$4" "$2" "$1"
+	printf "${BOLD}pacman:${RESET} [%s/%s] Removing package: [%s] '%s'\n" "$3" "$4" "$2" "$1"
 	pacman --noconfirm --needed -Rdd "$1" >>/dev/null 2>&1 
-	if [ $? -ne 0 ]; then printf "%s%spacman:%s%s Failed to remove package [%s] '%s'%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$2" "$1" "$RESET" | tee -a "$ERRFILE"; fi
+	if [ $? -ne 0 ]; then printf "${RED}${BOLD}pacman:${RESET}${RED} Failed to remove package [%s] '%s'${RESET}\n" "$2" "$1" | tee -a "$ERRFILE"; fi
 }
 
 # Using aur helper, install package $1 from list $2 which is $3st/nd/rd/th of $4
 aurInstall() {
-	printf "%s%s:%s [%s/%s] Installing package: [%s] '%s'\n" "$BOLD" "$HELPERCMD" "$RESET" "$3" "$4" "$2" "$1"
+	printf "${BOLD}$HELPERCMD:${RESET} [%s/%s] Installing package: [%s] '%s'\n" "$3" "$4" "$2" "$1"
 	sudo -u "$user" $HELPERCMD --noconfirm --needed -S "$1" >>/dev/null 2>&1 
-	if [ $? -ne 0 ]; then printf "%s%s%s:%s%s Failed to install package [%s] '%s'%s\n" "$RED" "$BOLD" "$HELPERCMD" "$RESET" "$RED" "$2" "$1" "$RESET" | tee -a "$ERRFILE"; fi
+	if [ $? -ne 0 ]; then printf "${RED}${BOLD}$HELPERCMD:${RESET}${RED} Failed to install package [%s] '%s'${RESET}\n" "$2" "$1" | tee -a "$ERRFILE"; fi
 }
 
 # Pulls git repository $1 and compiles it using make 
@@ -222,29 +222,29 @@ gitMakeInstall() {
 	name="$(basename "$1")" # get basename from url
 	name="${name%.git}"     # strip .git
 
-	printf "%sgit:%s [%s/%s] Pulling repository: [%s] '%s'\n" "$BOLD" "$RESET" "$3" "$4" "$2" "$1"
+	printf "${BOLD}git:${RESET} [%s/%s] Pulling repository: [%s] '%s'\n" "$3" "$4" "$2" "$1"
 	sudo -u "$user" git -C "$SOURCEDIR" clone --depth 1 --single-branch --recursive --no-tags -q "$1" "$SOURCEDIR/$name" || 
 		{
 			cd "$SOURCEDIR/$name" || return 1
-			printf "%sgit:%s [%s/%s] Directory already exists, attempting to update...\n" "$BOLD" "$RESET" "$3" "$4"
+			printf "${BOLD}git:${RESET} [%s/%s] Directory already exists, attempting to update...\n" "$3" "$4"
 			sudo -u "$user" git pull 
 		}
 	
 	cd "$SOURCEDIR/$name" ||  return 1
-	printf "%sgit:%s [%s/%s] Repository downloaded successfully, running %s'make'%s...\n" "$BOLD" "$RESET" "$3" "$4" "$BOLD" "$RESET"
+	printf "${BOLD}git:${RESET} [%s/%s] Repository downloaded successfully, running ${BOLD}'make'${RESET}...\n" "$3" "$4"
 	
 	make >>/dev/null 2>&1 
 	if [[ $? -ne 0 ]]; then
-		printf "%s%sgit:%s%s Failed to make [%s] '%s'%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$2" "$name" "$RESET" | tee -a "$ERRFILE"
+		printf "${RED}${BOLD}git:${RESET}${RED} Failed to make [%s] '%s'${RESET}\n" "$2" "$name" | tee -a "$ERRFILE"
 		return 1
 	fi
 	make install >>/dev/null 2>&1 
 	if [[ $? -ne 0 ]]; then
-		printf "%s%sgit:%s%s Failed to make install [%s] '%s'%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$2" "$name" "$RESET" | tee -a "$ERRFILE"
+		printf "${RED}${BOLD}git:${RESET}${RED} Failed to make install [%s] '%s'${RESET}\n" "$2" "$name" | tee -a "$ERRFILE"
 		return 1
 	fi
 
-	printf "%sgit:%s [%s/%s] Successfully installed '%s'.\n" "$BOLD" "$RESET" "$3" "$4" "$name"
+	printf "${BOLD}git:${RESET} [%s/%s] Successfully installed '%s'.\n" "$3" "$4" "$name"
 	cd "$SCRIPTDIR" || return 1
 }
 
@@ -266,7 +266,7 @@ installPackageArray() {
 	type[G]="gitMakeInstall"
 	
 	if [[ $# -ne 3 || -z "${type[$3]}" ]]; then
-		printf "%s%sError:%s%s Could not install/remove packages: %s%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$1" "$RESET"
+		printf "${RED}${BOLD}Error:${RESET}${RED} Could not install/remove packages: %s${RESET}\n" "$1"
 		return
 	fi
 
@@ -505,9 +505,9 @@ installPackageArray "pulseaudio-alsa pulseaudio-bluetooth pulseaudio jack2" "aud
 installPackageArray "pipewire wireplumber pipewire-alsa pipewire-pulse pipewire-jack" "audio" "P"
 
 printf "Enabling pipewire services.\n"
-sudo -u "$user" systemctl --global enable pipewire.socket >>/dev/null 2>&1 || printf "%s%saudio:%s%s Failed to enable pipewire%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$RESET" | tee -a "$ERRFILE"
-sudo -u "$user" systemctl --global enable pipewire-pulse.socket >>/dev/null 2>&1 || printf "%s%saudio:%s%s Failed to enable pipewire-pulse%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$RESET" | tee -a "$ERRFILE"
-sudo -u "$user" systemctl --global enable wireplumber.service >>/dev/null 2>&1 || printf "%s%saudio:%s%s Failed to enable wireplumber%s\n" "$RED" "$BOLD" "$RESET" "$RED" "$RESET" | tee -a "$ERRFILE"
+sudo -u "$user" systemctl --global enable pipewire.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire${RESET}\n" | tee -a "$ERRFILE"
+sudo -u "$user" systemctl --global enable pipewire-pulse.socket >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable pipewire-pulse${RESET}\n" | tee -a "$ERRFILE"
+sudo -u "$user" systemctl --global enable wireplumber.service >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable wireplumber${RESET}\n" | tee -a "$ERRFILE"
 
 
 # INSTALL LIGHTDM
