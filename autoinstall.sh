@@ -450,7 +450,7 @@ SCRIPTDIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 PKGDIR="$SCRIPTDIR/pkgs" 
 
 # Stuff that went bad goes here
-ERRFILE="$SCRIPTDIR/err.txt"
+ERRFILE="$SCRIPTDIR/errors.txt"
 
 
 
