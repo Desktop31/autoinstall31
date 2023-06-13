@@ -411,7 +411,7 @@ unpackFiles() {
 # =======================
 
 # Define and get valid user arguments
-SHORT=u:,w,x,s:,p,h
+SHORT=u:,w,x,s,p:,h
 LONG=user:,wayland,xorg,symlink,packages:,help
 OPTS=$(getopt --alternative --name "$0" --options $SHORT --longoptions $LONG -- "$@") 
 
