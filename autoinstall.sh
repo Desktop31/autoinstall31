@@ -22,13 +22,15 @@ RESET='\033[0m'
 # Print usage duh
 help() {
 	echo "Usage:"
-	echo "	$0 --user=<username> (--wayland | --xorg) [--packages=<package-list>]"
+	echo "	$0 --user=<username> (--wayland | --xorg) [--symlink] [--packages=<package-list>]"
 	echo ""
 	echo "Options:"
-	echo "	-u | --user 			username"
-	echo "	-w | --wayland 			install wayland packages (hyprland + waybar)"
-	echo "	-x | --xorg			install xorg packages (dwm + polybar)"
-	echo "	-p | --packages 		extra packages to install (standard, extra)"
+	echo "	-u | --user             username"
+	echo "	-w | --wayland          install wayland packages (hyprland + waybar)"
+	echo "	-x | --xorg             install xorg packages (dwm + polybar)"
+    echo "	-s | --symlink          symlink config files instead of copying"
+    echo "                                (useful for syncing changes with repo)"
+	echo "	-p | --packages         extra packages to install (standard, extra)"
 	echo ""
 	echo "Example: "
 	echo "	$0 --user=desktop31 --wayland --xorg --packages=standard,extra  "
@@ -69,6 +71,10 @@ parseArgs() {
 				;;
 			-x | --xorg )
 				PKGS=("xorg" "${PKGS[@]}")
+				shift 1
+				;;
+			-s | --symlink )
+                SYMLINK=1
 				shift 1
 				;;
 			-p | --packages )
@@ -325,6 +331,7 @@ installPackages() {
 
 
 # Copy files from directory $1 in dotfiles to $2
+# $3 - "nolink" ... don't symlink even if $SYMLINK -eq 1
 copyDirContent() {
 	echo "Copying files from directory '$1' to '$2'"
 
@@ -334,7 +341,17 @@ copyDirContent() {
 		mkdir -p "$2"
 	fi
 
-	cp -rT "$dirPath" "$2" 
+    if [[ "$SYMLINK" -eq 1 && "$3" != "nolink" ]]; then
+        # link each file/dir
+        local items=("$dirPath"/*)
+        for i in "${items[@]}"; do
+            i=$(basename "$i")
+            ln -s "$dirPath/$i" "$2/$i"
+        done
+    else
+        # copy each file/dir recursively
+        cp -rT "$dirPath" "$2" 
+    fi
 
     local isUserDir
 	isUserDir="$(echo "$2" | grep "/home/$user/")"
@@ -345,8 +362,13 @@ copyDirContent() {
 
 # Copy file $1 from dotfiles to home directory
 copyHome() {
-	echo "Copying file '$1' to '/home/$user/'"
-	sudo -u "$user" cp "$SOURCEDIR/dotfiles/$1" "/home/$user/$1" 
+    if [[ "$SYMLINK" -eq 1 ]]; then
+        echo "Linking file '$1' to '/home/$user/'"
+        sudo -u "$user" ln -s "$SOURCEDIR/dotfiles/$1" "/home/$user/$1" 
+    else
+        echo "Copying file '$1' to '/home/$user/'"
+        sudo -u "$user" cp "$SOURCEDIR/dotfiles/$1" "/home/$user/$1" 
+    fi
 }
 
 # Unpack compressed files from directory $1 in dotfiles to $2
@@ -389,8 +411,8 @@ unpackFiles() {
 # =======================
 
 # Define and get valid user arguments
-SHORT=u:,w,x,p:,h
-LONG=user:,wayland,xorg,packages:,help
+SHORT=u:,w,x,s:,p,h
+LONG=user:,wayland,xorg,symlink,packages:,help
 OPTS=$(getopt --alternative --name "$0" --options $SHORT --longoptions $LONG -- "$@") 
 
 # Check if getopt was successful
@@ -478,17 +500,20 @@ echo "blacklist pcspkr" >/etc/modprobe.d/nobeep.conf
 installAURHelper || error "Failed to install AUR helper"
 
 
-# Create user directories and copy content from dotfiles
+# Create user directories and copy/link content from dotfiles
 printf "\n${BOLD}-- COPYING CONFIGURATION FILES --${RESET}\n"
 
 installPackageArray "xdg-user-dirs" "configs" "P"
 xdg-user-dirs-update >>/dev/null 2>&1
+copyDirContent "Pictures/Wallpapers" "/usr/share/backgrounds" "nolink"
+copyDirContent "X11/xorg.conf.d" "/etc/X11/xorg.conf.d" "nolink"
 copyDirContent "Pictures" "/home/$user/Pictures"
-copyDirContent "Pictures/Wallpapers" "/usr/share/backgrounds"
 copyDirContent "Scripts" "/home/$user/Scripts"
-copyDirContent "X11/xorg.conf.d" "/etc/X11/xorg.conf.d"
+
+# copy/link files - depends on $SYMLINK
 copyDirContent "config" "/home/$user/.config"
 
+# copy/link files - depends on $SYMLINK
 copyHome ".face"
 copyHome ".bashrc"
 copyHome ".zshrc"
@@ -516,7 +541,7 @@ sudo -u "$user" systemctl --global enable wireplumber.service >>/dev/null 2>&1 |
 printf "\n${BOLD}-- INSTALLING DISPLAY MANAGER --${RESET}\n"
 installPackageArray "lightdm" "lightdm" "P"
 installPackageArray "web-greeter lightdm-theme-neon-git" "lightdm" "A"
-copyDirContent "lightdm" "/etc/lightdm/"
+copyDirContent "lightdm" "/etc/lightdm/" "nolink"
 systemctl enable lightdm >>/dev/null 2>&1
 
 
