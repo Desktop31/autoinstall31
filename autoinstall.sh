@@ -333,7 +333,6 @@ installPackages() {
 # Copy files from directory $1 in dotfiles to $2
 # $3 - "nolink" ... don't symlink even if $SYMLINK -eq 1
 copyDirContent() {
-	echo "Copying files from directory '$1' to '$2'"
 
 	local dirPath="$SOURCEDIR/dotfiles/$1"
 	
@@ -343,13 +342,15 @@ copyDirContent() {
 
     if [[ "$SYMLINK" -eq 1 && "$3" != "nolink" ]]; then
         # link each file/dir
+        echo "Linking files from directory '$1' to '$2'"
         local items=("$dirPath"/*)
         for i in "${items[@]}"; do
             i=$(basename "$i")
-            ln -s "$dirPath/$i" "$2/$i"
+            ln -sf "$dirPath/$i" "$2/$i"
         done
     else
         # copy each file/dir recursively
+        echo "Copying files from directory '$1' to '$2'"
         cp -rT "$dirPath" "$2" 
     fi
 
@@ -364,7 +365,7 @@ copyDirContent() {
 copyHome() {
     if [[ "$SYMLINK" -eq 1 ]]; then
         echo "Linking file '$1' to '/home/$user/'"
-        sudo -u "$user" ln -s "$SOURCEDIR/dotfiles/$1" "/home/$user/$1" 
+        sudo -u "$user" ln -sf "$SOURCEDIR/dotfiles/$1" "/home/$user/$1" 
     else
         echo "Copying file '$1' to '/home/$user/'"
         sudo -u "$user" cp "$SOURCEDIR/dotfiles/$1" "/home/$user/$1" 
