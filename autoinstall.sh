@@ -506,7 +506,7 @@ printf "\n${BOLD}-- COPYING CONFIGURATION FILES --${RESET}\n"
 
 installPackageArray "xdg-user-dirs" "configs" "P"
 xdg-user-dirs-update >>/dev/null 2>&1
-copyDirContent "Pictures/Wallpapers" "/usr/share/backgrounds" "nolink"
+copyDirContent "Pictures/Wallpapers" "/usr/share/backgrounds/Wallpapers" "nolink"
 copyDirContent "X11/xorg.conf.d" "/etc/X11/xorg.conf.d" "nolink"
 copyDirContent "Pictures" "/home/$user/Pictures"
 copyDirContent "Scripts" "/home/$user/Scripts"
