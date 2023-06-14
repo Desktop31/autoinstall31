@@ -406,6 +406,26 @@ unpackFiles() {
 }
 
 
+# set user icon
+setUserIcon() {
+    local iconFile="$SOURCEDIR/dotfiles/AccountsService/icons/username"
+    local userFile="$SOURCEDIR/dotfiles/AccountsService/users/username"
+
+    local iconDestDir="/var/lib/AccountsService/icons"
+    local userDestDir="/var/lib/AccountsService/users"
+
+    mkdir -p "$iconDestDir"
+    mkdir -p "$userDestDir"
+
+    cp "$iconFile" "$iconDestDir/$user"
+    chmod 644 "$iconDestDir/$user"
+
+    cp "$userFile" "$userDestDir/$user"
+    chmod 600 "$userDestDir/$user"
+
+    sed -Ei "s/username/$user/" "$userDestDir/$user"
+}
+
 
 # =======================
 # 	  PARSE ARGUMENTS
@@ -548,6 +568,8 @@ cp "$SOURCEDIR/dotfiles/lightdm/dmlock.service" "/etc/systemd/system/dmlock.serv
 systemctl enable lightdm >>/dev/null 2>&1
 systemctl enable dmlock.service >>/dev/null 2>&1
 
+installPackageArray "accountsservice" "accountsservice" "P"
+setUserIcon
 
 # Install packages from $PKGS
 printf "\n${BOLD}-- INSTALLING PACKAGES --${RESET}\n"
