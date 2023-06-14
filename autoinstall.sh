@@ -543,7 +543,10 @@ printf "\n${BOLD}-- INSTALLING DISPLAY MANAGER --${RESET}\n"
 installPackageArray "lightdm" "lightdm" "P"
 installPackageArray "web-greeter lightdm-theme-neon-git" "lightdm" "A"
 copyDirContent "lightdm" "/etc/lightdm/" "nolink"
+mkdir -p "/etc/systemd/system"
+cp "$SOURCEDIR/dotfiles/lightdm/dmlock.service" "/etc/systemd/system/dmlock.service"
 systemctl enable lightdm >>/dev/null 2>&1
+systemctl enable dmlock.service >>/dev/null 2>&1
 
 
 # Install packages from $PKGS
