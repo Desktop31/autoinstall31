@@ -15,6 +15,14 @@ gst-plugin-pipewire
 pavucontrol
 samba
 smbclient
+gvfs
+gvfs-afc
+gvfs-goa
+gvfs-google
+gvfs-gphoto2
+gvfs-mtp
+gvfs-nfs
+gvfs-smb
 cups
 playerctl
 neofetch
