@@ -4,6 +4,9 @@ dunst
 firefox
 lf
 thunar
+thunar-archive-plugin
+thunar-volman
+thunar-vcs-plugin    A
 tumbler
 mediainfo
 mediainfo-gui
