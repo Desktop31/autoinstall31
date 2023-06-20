@@ -618,3 +618,10 @@ printf "${BOLD}===========================${RESET}\n"
 printf "${BOLD}== INSTALLATION FINISHED ==${RESET}\n"
 printf "${BOLD}==     PLEASE REBOOT     ==${RESET}\n"
 printf "${BOLD}===========================${RESET}\n"
+
+if [[ -f "$ERRFILE" ]]; then 
+    printf "\n"
+    printf "${BOLD}==     ERROR SUMMARY     ==${RESET}\n"
+    cat "$ERRFILE"
+    printf "${BOLD}===========================${RESET}\n"
+fi
