@@ -329,6 +329,21 @@ installPackages() {
 	done
 }
 
+# Check if a package $1 is in any of $PKGS lists in directory $PKGDIR
+# $PKGS ... array of lists of packages like: ('xorg', 'wayland', ...)
+# returns 1 if the package was found in any of the package lists
+# returns 0 if the package was not found
+lookupPKG() {
+	for list in "${PKGS[@]}"; do
+		local path="$PKGDIR/$list"
+        if [[ -f $path && "$(grep -q "$1" < "$path")" -eq 0 ]]; then
+            return 1
+        else
+            return 0
+		fi
+	done
+}
+
 
 # Copy files from directory $1 in dotfiles to $2
 # $3 - "nolink" ... don't symlink even if $SYMLINK -eq 1
@@ -575,6 +590,10 @@ setUserIcon
 printf "\n${BOLD}-- INSTALLING PACKAGES --${RESET}\n"
 installPackages
 
+# enable TLP if installed
+if [[ $(lookupPKG "tlp") -eq 1 ]]; then
+    systemctl enable tlp.service >>/dev/null 2>&1
+fi
 
 printf "\n${BOLD}-- FINISHING --${RESET}\n"
 # Allow users to sudo with password and run some commands without password
