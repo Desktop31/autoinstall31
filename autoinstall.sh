@@ -316,8 +316,8 @@ gitInstallFile() {
 }
 
 
-# Install all packages from file $1, files are in directory $2
-# $1 ... array of lists of packages like: ('xorg', 'wayland', ...)
+# Install all packages from $PKGS list in directory $PKGDIR
+# $PKGS ... array of lists of packages like: ('xorg', 'wayland', ...)
 installPackages() {
 	for list in "${PKGS[@]}"; do
 		local path="$PKGDIR/$list"
@@ -423,6 +423,8 @@ unpackFiles() {
 
 # set user icon
 setUserIcon() {
+    printf "Setting user icon"
+
     local iconFile="$SOURCEDIR/dotfiles/AccountsService/icons/username"
     local userFile="$SOURCEDIR/dotfiles/AccountsService/users/username"
 
