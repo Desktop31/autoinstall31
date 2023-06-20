@@ -597,6 +597,15 @@ if [[ $(lookupPKG "tlp") -eq 1 ]]; then
     systemctl enable tlp.service >>/dev/null 2>&1
 fi
 
+# run postinstall script if available in dotfile repo
+if [[ -f "$SOURCEDIR/dotfiles/postInstall.sh" ]]; then
+    printf "\n${BOLD}-- RUNNING POSTINSTALL SCRIPT --${RESET}\n"
+    sudo -u "$user" sh "$SOURCEDIR/dotfiles/postInstall.sh" "$user"
+    if [[ $? -ne 0 ]]; then
+		printf "${RED}${BOLD}Error:${RESET}${RED} PostInstall script failed${RESET}\n" | tee -a "$ERRFILE"
+    fi
+fi
+
 printf "\n${BOLD}-- FINISHING --${RESET}\n"
 # Allow users to sudo with password and run some commands without password
 
