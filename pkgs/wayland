@@ -33,10 +33,10 @@ grim
 wayland
 xdg-desktop-portal
 wvkbd                       A
-cliphist					A
-hyprpicker-git				A
-hyprpaper-git				A
-wdisplays					A
-waybar-hyprland-git			A
-xdg-desktop-portal-hyprland-git 	A
-https://github.com/hyprwm/Hyprland.git		G
+cliphist                    A
+hyprpicker-git              A
+hyprpaper-git               A
+wdisplays                   A
+waybar-hyprland-git         A
+xdg-desktop-portal-hyprland-git             A
+https://github.com/hyprwm/Hyprland.git      G
