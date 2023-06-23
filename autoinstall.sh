@@ -28,8 +28,10 @@ help() {
 	echo "	-u | --user             username"
 	echo "	-w | --wayland          install wayland packages (hyprland + waybar)"
 	echo "	-x | --xorg             install xorg packages (dwm + polybar)"
-    echo "	-s | --symlink          symlink config files instead of copying"
+    echo "	-l | --link             symlink config files instead of copying"
     echo "                                (useful for syncing changes with repo)"
+    echo "	-s | --swaylock         use swaylock instead of lightdm"
+    echo "                                (both will be installed anyway)"
 	echo "	-p | --packages         extra packages to install (standard, extra)"
 	echo ""
 	echo "Example: "
@@ -73,8 +75,12 @@ parseArgs() {
 				PKGS=("xorg" "${PKGS[@]}")
 				shift 1
 				;;
-			-s | --symlink )
+			-l | --link )
                 SYMLINK=1
+				shift 1
+				;;
+			-s | --swaylock )
+                SWAYLOCK=1
 				shift 1
 				;;
 			-p | --packages )
@@ -449,8 +455,8 @@ setUserIcon() {
 # =======================
 
 # Define and get valid user arguments
-SHORT=u:,w,x,s,p:,h
-LONG=user:,wayland,xorg,symlink,packages:,help
+SHORT=u:,w,x,s,l,p:,h
+LONG=user:,wayland,xorg,swaylock,link,packages:,help
 OPTS=$(getopt --alternative --name "$0" --options $SHORT --longoptions $LONG -- "$@") 
 
 # Check if getopt was successful
@@ -575,15 +581,22 @@ sudo -u "$user" systemctl --global enable pipewire-pulse.socket >>/dev/null 2>&1
 sudo -u "$user" systemctl --global enable wireplumber.service >>/dev/null 2>&1 || printf "${RED}${BOLD}audio:${RESET}${RED} Failed to enable wireplumber${RESET}\n" | tee -a "$ERRFILE"
 
 
-# INSTALL LIGHTDM
+# INSTALL LIGHTDM and SWAYLOCK
 printf "\n${BOLD}-- INSTALLING DISPLAY MANAGER --${RESET}\n"
 installPackageArray "lightdm" "lightdm" "P"
 installPackageArray "web-greeter lightdm-theme-neon-git" "lightdm" "A"
 copyDirContent "lightdm" "/etc/lightdm/" "nolink"
 mkdir -p "/etc/systemd/system"
 cp "$SOURCEDIR/dotfiles/lightdm/dmlock.service" "/etc/systemd/system/dmlock.service"
-systemctl enable lightdm >>/dev/null 2>&1
-systemctl enable dmlock.service >>/dev/null 2>&1
+
+installPackageArray "swayidle idlehack-git swaylock-effects-git" "swaylock" "A"
+
+if [[ "$SWAYLOCK" -ne 1 ]]; then
+    systemctl enable lightdm >>/dev/null 2>&1
+    systemctl enable dmlock.service >>/dev/null 2>&1
+else
+    systemctl enable idlehack.service >>/dev/null 2>&1
+fi
 
 installPackageArray "accountsservice" "accountsservice" "P"
 setUserIcon
