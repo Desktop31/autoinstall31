@@ -429,7 +429,7 @@ unpackFiles() {
 
 # set user icon
 setUserIcon() {
-    printf "Setting user icon"
+    echo "Setting user icon"
 
     local iconFile="$SOURCEDIR/dotfiles/AccountsService/icons/username"
     local userFile="$SOURCEDIR/dotfiles/AccountsService/users/username"
