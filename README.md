@@ -46,6 +46,8 @@ If you're installing this on a laptop, you might want to switch to laptop waybar
 
 ## Running the script
 You must run the script as the root user. <br>
+Please update your system before running the script.
+
 It is recommended to run this ONLY on a base arch installation. <br>
 If you already have a full system and a user setup, it *should* also work, but some stuff might be overriden (not tested, feel free to break your system :trollface:)
 
