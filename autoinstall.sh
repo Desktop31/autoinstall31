@@ -557,6 +557,12 @@ copyDirContent "Scripts" "/home/$user/Scripts"
 # copy/link files - depends on $SYMLINK
 copyDirContent "config" "/home/$user/.config"
 
+# install packer.nvim
+echo "Installing packer.nvim"
+sudo -u "$user" git clone --depth 1 \
+    "https://github.com/wbthomason/packer.nvim"\
+    "/home/$user/.local/share/nvim/site/pack/packer/start/packer.nvim"
+
 # copy/link files - depends on $SYMLINK
 copyHome ".face"
 copyHome ".bashrc"
